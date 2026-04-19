@@ -80,10 +80,10 @@ class Config:
     # Training
     # ------------------------------------------------------------------
     BATCH_SIZE: int = 64
-    EPOCHS: int = 150
+    EPOCHS: int = 300
     LEARNING_RATE: float = 0.0005
     WEIGHT_DECAY: float = 1e-5
-    PATIENCE: int = 20          # Early-stopping patience (epochs)
+    PATIENCE: int = 35          # Increased Early-stopping patience (epochs)
     N_ENSEMBLE: int = 5         # Number of models in ensemble
     MC_DROPOUT_PASSES: int = 50  # Monte-Carlo dropout passes for uncertainty
 
@@ -127,9 +127,9 @@ class Config:
     # ------------------------------------------------------------------
     # Walk-forward validation
     # ------------------------------------------------------------------
-    TRAIN_WINDOW_YEARS: int = 5   # Training window length
-    TEST_WINDOW_MONTHS: int = 6   # Out-of-sample test window
-    N_FOLDS: int = 8              # Number of walk-forward folds
+    TRAIN_WINDOW_YEARS: int = 15  # Training window length (Increased for T4 GPU)
+    TEST_WINDOW_MONTHS: int = 12  # Out-of-sample test window (1 year per fold)
+    N_FOLDS: int = 11             # 15 years + (11 folds * 1 year) = 26 years to reach 2026
 
 
 # ---------------------------------------------------------------------------

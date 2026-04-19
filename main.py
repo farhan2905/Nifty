@@ -535,13 +535,40 @@ def run_backtest(config: Config) -> None:
 
     backtester = WalkForwardBacktester(config, device="auto")
     results    = backtester.run(model_factory, df_15m, df_1h, df_1d, df_1w,
-                                n_features=n_features, verbose=True)
+                                n_features=n_features, verbose=True, skip_training=True)
 
     curve_path = str(Path(config.LOG_DIR) / "equity_curve.png")
     backtester.plot_equity_curve(results, save_path=curve_path, show=False)
     print(f"\n  Equity curve saved → {curve_path}")
     print(results.summary())
 
+    # Build Visualization Dashboard
+    from visualization.reporting import PredictionVisualizer
+    import webbrowser
+    import json
+    
+    report = {
+        "timestamp": datetime.now().isoformat(),
+        "device": "auto",
+        "features": {"count": n_features},
+        "model": {"trainable_parameters": sum(p.numel() for p in model_factory().parameters())},
+        "rl_feedback": {}, # No RL in simple backtest
+        "backtest": {
+            "oos_acc_mean": results.oos_acc_mean,
+            "oos_acc_std": results.oos_acc_std,
+            "oos_mag_mae": results.oos_mag_mae,
+            "sharpe_ratio": results.sharpe_ratio,
+            "max_drawdown": results.max_drawdown,
+            "folds": [f.__dict__ for f in results.folds],
+        }
+    }
+    visualizer = PredictionVisualizer(Path(config.REPORT_DIR))
+    viz_paths = visualizer.save_backtest_dashboard(report, results)
+    html_path = viz_paths.get("html")
+    
+    if html_path:
+        print(f"\n  [Dashboard] Opening full backtest dashboard: {html_path}")
+        webbrowser.open(f"file:///{Path(html_path).resolve()}")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # LIVE MODE

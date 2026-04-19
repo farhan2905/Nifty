@@ -310,6 +310,7 @@ class WalkForwardBacktester:
         df_1w:  pd.DataFrame,
         n_features: int = 50,
         verbose: bool = True,
+        skip_training: bool = False,
     ) -> BacktestResults:
         """
         Execute the full walk-forward backtest.
@@ -361,17 +362,24 @@ class WalkForwardBacktester:
             # Fresh model
             model = model_factory()
 
-            # Train
             checkpoint_path = str(self.model_dir / f"fold_{fold_idx:02d}.pt")
             feature_cols = [c for c in df_1d.columns if c not in {"Open", "High", "Low", "Close", "Volume", "target_return", "Date"}]
-            history = trainer.fit(
-                model,
-                train_df_15m, train_df_1h, train_df_1d, train_df_1w,
-                n_features=n_features,
-                checkpoint_path=checkpoint_path,
-                feature_schema={"15m": feature_cols, "1h": feature_cols, "1d": feature_cols, "1w": feature_cols},
-            )
-            best_val_acc = max(history["val_acc"]) if history["val_acc"] else 0.0
+            
+            if skip_training and Path(checkpoint_path).exists():
+                if verbose:
+                    print(f"     ✅ Loaded existing checkpoint: {checkpoint_path}")
+                trainer.load_checkpoint(model, checkpoint_path)
+                best_val_acc = 0.0 # Unknown from skipped training
+            else:
+                # Train
+                history = trainer.fit(
+                    model,
+                    train_df_15m, train_df_1h, train_df_1d, train_df_1w,
+                    n_features=n_features,
+                    checkpoint_path=checkpoint_path,
+                    feature_schema={"15m": feature_cols, "1h": feature_cols, "1d": feature_cols, "1w": feature_cols},
+                )
+                best_val_acc = max(history["val_acc"]) if history["val_acc"] else 0.0
 
             # Evaluate on test window
             test_acc, test_mae, pred_dirs, actual_rets, confs = self._evaluate_fold(
