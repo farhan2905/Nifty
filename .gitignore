@@ -1,0 +1,8 @@
+myvenv/
+models/saved/
+data/cache/
+logs/
+__pycache__/
+*.pyc
+*.log
+*.pt
