@@ -642,7 +642,7 @@ def run_live(config: Config) -> None:
     sentiment   = SentimentAnalyzer()
 
     _step(4, 4, "Initialising retest engine …")
-    retest = RetestEngine(config)
+    retest = RetestEngine(config, ensemble, sentiment)
 
     config.N_FEATURES = n_features
     config.FEATURE_SCHEMA = feature_schema
@@ -716,7 +716,7 @@ def run_predict(config: Config) -> None:
     fe          = FeatureEngineer(add_target_return=False)
     news_feeder = NewsFeeder(cache_dir=config.DATA_DIR)
     sentiment   = SentimentAnalyzer()
-    retest      = RetestEngine(config)
+    retest      = RetestEngine(config, ensemble, sentiment)
 
     config.N_FEATURES = n_features
     config.FEATURE_SCHEMA = feature_schema
